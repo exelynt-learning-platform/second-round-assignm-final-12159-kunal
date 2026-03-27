@@ -15,6 +15,7 @@ import com.kunal.ecommerce.entity.User;
 import com.kunal.ecommerce.exception.ValidationException;
 import com.kunal.ecommerce.repository.CartRepository;
 import com.kunal.ecommerce.repository.OrderRepository;
+import com.kunal.ecommerce.repository.ProductRepository;
 import com.kunal.ecommerce.repository.UserRepository;
 import com.kunal.ecommerce.service.impl.OrderServiceImpl;
 import java.math.BigDecimal;
@@ -38,6 +39,9 @@ class OrderServiceImplTest {
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private ProductRepository productRepository;
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
@@ -60,6 +64,7 @@ class OrderServiceImplTest {
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+        when(productRepository.findWithLockById(product.getId())).thenReturn(Optional.of(product));
         when(orderRepository.save(org.mockito.ArgumentMatchers.any(CustomerOrder.class)))
                 .thenAnswer(invocation -> {
                     CustomerOrder order = invocation.getArgument(0);

@@ -83,7 +83,7 @@ public class CartServiceImpl implements CartService {
         Cart userCart = getOrCreateCart(user);
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found with id: " + cartItemId));
-        if (!cartItem.getCart().getId().equals(userCart.getId())) {
+        if (cartItem.getCart() == null || !cartItem.getCart().getId().equals(userCart.getId())) {
             throw new ValidationException("You can only modify your own cart");
         }
         return cartItem;

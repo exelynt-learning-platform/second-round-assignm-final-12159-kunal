@@ -26,6 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
+    private static final String PAYMENT_STATUS_SUCCEEDED = "succeeded";
+    private static final String PAYMENT_STATUS_PROCESSING = "processing";
+    private static final String PAYMENT_STATUS_REQUIRES_CAPTURE = "requires_capture";
+
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
 
@@ -76,13 +80,7 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             PaymentIntent paymentIntent = PaymentIntent.retrieve(request.getPaymentIntentId());
             String paymentStatus = paymentIntent.getStatus();
-            if ("succeeded".equalsIgnoreCase(paymentStatus)) {
-                order.setStatus(OrderStatus.PAID);
-            } else if ("processing".equalsIgnoreCase(paymentStatus) || "requires_capture".equalsIgnoreCase(paymentStatus)) {
-                order.setStatus(OrderStatus.PENDING);
-            } else {
-                order.setStatus(OrderStatus.FAILED);
-            }
+            order.setStatus(mapOrderStatus(paymentStatus));
             orderRepository.save(order);
 
             return PaymentResponse.builder()
@@ -118,5 +116,16 @@ public class PaymentServiceImpl implements PaymentService {
         return amount.multiply(BigDecimal.valueOf(100))
                 .setScale(0, RoundingMode.HALF_UP)
                 .longValueExact();
+    }
+
+    private OrderStatus mapOrderStatus(String paymentStatus) {
+        if (PAYMENT_STATUS_SUCCEEDED.equalsIgnoreCase(paymentStatus)) {
+            return OrderStatus.PAID;
+        }
+        if (PAYMENT_STATUS_PROCESSING.equalsIgnoreCase(paymentStatus)
+                || PAYMENT_STATUS_REQUIRES_CAPTURE.equalsIgnoreCase(paymentStatus)) {
+            return OrderStatus.PENDING;
+        }
+        return OrderStatus.FAILED;
     }
 }

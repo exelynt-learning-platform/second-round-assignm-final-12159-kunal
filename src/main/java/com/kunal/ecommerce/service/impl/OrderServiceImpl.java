@@ -14,6 +14,7 @@ import com.kunal.ecommerce.exception.ResourceNotFoundException;
 import com.kunal.ecommerce.exception.ValidationException;
 import com.kunal.ecommerce.repository.CartRepository;
 import com.kunal.ecommerce.repository.OrderRepository;
+import com.kunal.ecommerce.repository.ProductRepository;
 import com.kunal.ecommerce.repository.UserRepository;
 import com.kunal.ecommerce.service.OrderService;
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
 
     @Override
     @Transactional
@@ -52,7 +54,9 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal total = BigDecimal.ZERO;
         for (CartItem cartItem : cart.getItems()) {
-            Product product = cartItem.getProduct();
+            Product product = productRepository.findWithLockById(cartItem.getProduct().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Product not found with id: " + cartItem.getProduct().getId()));
             if (product.getStockQuantity() < cartItem.getQuantity()) {
                 throw new ValidationException("Insufficient stock for product: " + product.getName());
             }

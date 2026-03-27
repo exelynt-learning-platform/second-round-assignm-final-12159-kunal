@@ -110,42 +110,6 @@ app.jwt.expiration=86400000
 stripe.secret-key=sk_test_change_me
 stripe.currency=inr
 ```
-
-## How To Run
-
-1. Install JDK 17 or later.
-2. Create a MySQL database named `ecommerce`.
-3. Update `src/main/resources/application.properties` with your local MySQL and Stripe values.
-4. Start the application:
-
-```powershell
-$env:JAVA_HOME='C:\Program Files\Java\jdk-21'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
-cmd /c mvnw.cmd spring-boot:run
-```
-
-The application will start at:
-
-```text
-http://localhost:8080
-```
-
-## How To Test
-
-Import the Postman collection from:
-
-```text
-postman/EcommerceBackend.postman_collection.json
-```
-
-You can also run the test suite with:
-
-```powershell
-$env:JAVA_HOME='C:\Program Files\Java\jdk-21'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
-cmd /c mvnw.cmd test
-```
-
 ## Sample Flow
 
 1. Register a user

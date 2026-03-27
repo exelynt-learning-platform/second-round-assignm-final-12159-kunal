@@ -48,7 +48,7 @@ public class CartServiceImpl implements CartService {
             cart.getItems().add(cartItem);
         }
         cartItemRepository.save(cartItem);
-        return mapCartResponse(cartRepository.findByUserId(user.getId()).orElse(cart));
+        return mapCartResponse(getDetailedCart(user, cart));
     }
 
     @Override
@@ -75,7 +75,8 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public CartResponse getCart(String userEmail) {
         User user = getUser(userEmail);
-        return mapCartResponse(getOrCreateCart(user));
+        Cart cart = getOrCreateCart(user);
+        return mapCartResponse(getDetailedCart(user, cart));
     }
 
     private CartItem getOwnedCartItem(String userEmail, Long cartItemId) {
@@ -92,6 +93,10 @@ public class CartServiceImpl implements CartService {
     private Cart getOrCreateCart(User user) {
         return cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> cartRepository.save(Cart.builder().user(user).build()));
+    }
+
+    private Cart getDetailedCart(User user, Cart fallbackCart) {
+        return cartRepository.findDetailedByUserId(user.getId()).orElse(fallbackCart);
     }
 
     private User getUser(String email) {

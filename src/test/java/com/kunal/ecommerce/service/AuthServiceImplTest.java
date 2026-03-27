@@ -1,7 +1,6 @@
 package com.kunal.ecommerce.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,7 +9,6 @@ import com.kunal.ecommerce.dto.auth.AuthResponse;
 import com.kunal.ecommerce.dto.auth.LoginRequest;
 import com.kunal.ecommerce.dto.auth.RegisterRequest;
 import com.kunal.ecommerce.entity.Role;
-import com.kunal.ecommerce.exception.ValidationException;
 import com.kunal.ecommerce.repository.CartRepository;
 import com.kunal.ecommerce.repository.UserRepository;
 import com.kunal.ecommerce.security.CustomUserDetailsService;
@@ -77,17 +75,6 @@ class AuthServiceImplTest {
         assertEquals("jwt-token", response.getToken());
         assertEquals(Role.USER, response.getRole());
         verify(cartRepository).save(any());
-    }
-
-    @Test
-    void registerShouldRejectAdminRegistration() {
-        RegisterRequest request = new RegisterRequest();
-        request.setName("Admin");
-        request.setEmail("admin@example.com");
-        request.setPassword("secret");
-        request.setRole(Role.ADMIN);
-
-        assertThrows(ValidationException.class, () -> authService.register(request));
     }
 
     @Test

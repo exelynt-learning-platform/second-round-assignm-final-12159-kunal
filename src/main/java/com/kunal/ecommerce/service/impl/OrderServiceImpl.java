@@ -44,40 +44,55 @@ public class OrderServiceImpl implements OrderService {
             throw new ValidationException("Cart is empty");
         }
 
-        CustomerOrder order = CustomerOrder.builder()
+        CustomerOrder order = initializeOrder(user, request.getShippingAddress());
+        order.setTotalPrice(addCartItemsToOrder(cart.getItems(), order));
+        CustomerOrder savedOrder = orderRepository.save(order);
+        cart.getItems().clear();
+        return mapOrderResponse(savedOrder);
+    }
+
+    private CustomerOrder initializeOrder(User user, String shippingAddress) {
+        return CustomerOrder.builder()
                 .user(user)
-                .shippingAddress(request.getShippingAddress())
+                .shippingAddress(shippingAddress)
                 .status(OrderStatus.PENDING)
                 .totalPrice(BigDecimal.ZERO)
                 .items(new ArrayList<>())
                 .build();
+    }
 
+    private BigDecimal addCartItemsToOrder(List<CartItem> cartItems, CustomerOrder order) {
         BigDecimal total = BigDecimal.ZERO;
-        for (CartItem cartItem : cart.getItems()) {
-            Product product = productRepository.findWithLockById(cartItem.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Product not found with id: " + cartItem.getProduct().getId()));
-            if (product.getStockQuantity() < cartItem.getQuantity()) {
-                throw new ValidationException("Insufficient stock for product: " + product.getName());
-            }
-
-            product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
-            BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
-            total = total.add(lineTotal);
-
-            OrderItem orderItem = OrderItem.builder()
-                    .order(order)
-                    .product(product)
-                    .quantity(cartItem.getQuantity())
-                    .price(product.getPrice())
-                    .build();
-            order.getItems().add(orderItem);
+        for (CartItem cartItem : cartItems) {
+            Product product = loadProductForUpdate(cartItem.getProduct().getId());
+            deductStock(product, cartItem.getQuantity());
+            total = total.add(addOrderItem(order, product, cartItem.getQuantity()));
         }
+        return total;
+    }
 
-        order.setTotalPrice(total);
-        CustomerOrder savedOrder = orderRepository.save(order);
-        cart.getItems().clear();
-        return mapOrderResponse(savedOrder);
+    private Product loadProductForUpdate(Long productId) {
+        return productRepository.findWithLockById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+    }
+
+    private void deductStock(Product product, Integer quantity) {
+        if (product.getStockQuantity() < quantity) {
+            throw new ValidationException("Insufficient stock for product: " + product.getName());
+        }
+        product.setStockQuantity(product.getStockQuantity() - quantity);
+    }
+
+    private BigDecimal addOrderItem(CustomerOrder order, Product product, Integer quantity) {
+        BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(quantity));
+        OrderItem orderItem = OrderItem.builder()
+                .order(order)
+                .product(product)
+                .quantity(quantity)
+                .price(product.getPrice())
+                .build();
+        order.getItems().add(orderItem);
+        return lineTotal;
     }
 
     @Override

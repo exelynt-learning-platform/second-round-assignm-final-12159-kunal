@@ -10,4 +10,6 @@ public class PaymentIntentRequest {
 
     @NotNull(message = "Order id is required")
     private Long orderId;
+
+    private String currency;
 }

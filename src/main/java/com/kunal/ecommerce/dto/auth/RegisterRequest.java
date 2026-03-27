@@ -1,6 +1,5 @@
 package com.kunal.ecommerce.dto.auth;
 
-import com.kunal.ecommerce.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -19,6 +18,4 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     private String password;
-
-    private Role role = Role.USER;
 }

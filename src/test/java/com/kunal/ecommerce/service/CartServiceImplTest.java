@@ -64,6 +64,7 @@ class CartServiceImplTest {
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+        when(cartRepository.findDetailedByUserId(user.getId())).thenReturn(Optional.of(cart));
         when(productRepository.findById(2L)).thenReturn(Optional.of(product));
         when(cartItemRepository.findByCartIdAndProductId(3L, 2L)).thenReturn(Optional.empty());
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> {

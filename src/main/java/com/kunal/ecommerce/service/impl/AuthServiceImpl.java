@@ -38,18 +38,11 @@ public class AuthServiceImpl implements AuthService {
             throw new ValidationException("Email already registered");
         }
 
-        // Public registration is intentionally limited to customer accounts so
-        // privileged users can only be provisioned through trusted admin flows.
-        if (request.getRole() == Role.ADMIN) {
-            throw new ValidationException("Admin registration is not allowed through public API");
-        }
-
-        Role role = Role.USER;
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(role)
+                .role(Role.USER)
                 .build();
         User savedUser = userRepository.save(user);
 

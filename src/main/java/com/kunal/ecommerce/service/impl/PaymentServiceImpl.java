@@ -17,9 +17,11 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -47,7 +49,7 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount(toMinorUnits(order.getTotalPrice()))
-                    .setCurrency(currency)
+                    .setCurrency(resolveCurrency(request))
                     .putMetadata("orderId", String.valueOf(order.getId()))
                     .putMetadata("userId", String.valueOf(order.getUser().getId()))
                     .setAutomaticPaymentMethods(
@@ -116,6 +118,13 @@ public class PaymentServiceImpl implements PaymentService {
         return amount.multiply(BigDecimal.valueOf(100))
                 .setScale(0, RoundingMode.HALF_UP)
                 .longValueExact();
+    }
+
+    private String resolveCurrency(PaymentIntentRequest request) {
+        if (StringUtils.hasText(request.getCurrency())) {
+            return request.getCurrency().trim().toLowerCase(Locale.ROOT);
+        }
+        return currency.toLowerCase(Locale.ROOT);
     }
 
     private OrderStatus mapOrderStatus(String paymentStatus) {
